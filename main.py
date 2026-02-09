@@ -1,7 +1,7 @@
 import os
 import requests
 from helper import *
-from flask import Flask, request, send_file, Response, abort, jsonify
+from flask import Flask, request, send_file, Response, abort, jsonify, after_this_request
 
 app = Flask(__name__)
 spot = SpotMateAPI()
@@ -37,10 +37,17 @@ def spotify_download():
     if not new_files:
         abort(500, "Output not found")
 
-    return send_file(
-        os.path.join(SP_DOWNLOAD_DIR, new_files[0]),
-        as_attachment=True
-    )
+    file_path = os.path.join(SP_DOWNLOAD_DIR, new_files[0])
+
+    @after_this_request
+    def remove_file(response):
+        try:
+            os.remove(file_path)
+        except Exception:
+            pass
+        return response
+
+    return send_file(file_path, as_attachment=True)
 
 @app.route("/saavn/search")
 def saavn_search_api():
@@ -74,8 +81,15 @@ def saavn_download():
         for chunk in r.iter_content(8192):
             f.write(chunk)
 
-    return send_file(path, as_attachment=True)
+    @after_this_request
+    def remove_file(response):
+        try:
+            os.remove(path)
+        except Exception:
+            pass
+        return response
 
+    return send_file(path, as_attachment=True)
 
 @app.route("/")
 def index():
@@ -85,4 +99,5 @@ def index():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000, threaded=True)
+
 

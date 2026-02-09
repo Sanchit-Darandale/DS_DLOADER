@@ -9,13 +9,7 @@
 <body>
 
 <div class="container">
-
-    <!-- TOP TOGGLE -->
-    <div class="top-toggle">
-        <button class="active" onclick="showSection('sp', this)">Spotify</button>
-        <button onclick="showSection('sa', this)">JioSaavn</button>
-    </div>
-
+    
     <section id="sp" class="section active">
         <h1>DS Spotify Downloader</h1>
         <form method="GET" action="/spotify">
@@ -31,6 +25,12 @@
         <button onclick="searchSaavn()">Search</button>
         <div id="saavnResults"></div>
     </section>
+
+    <!-- TOP TOGGLE -->
+    <div class="top-toggle">
+        <button class="active" onclick="showSection('sp', this)">Spotify</button>
+        <button onclick="showSection('sa', this)">JioSaavn</button>
+    </div>
 </div>
 
 
@@ -72,4 +72,5 @@ async function searchSaavn() {
 
 </body>
 </html>
+
 

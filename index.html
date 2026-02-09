@@ -12,39 +12,11 @@
 
     <!-- TOP TOGGLE -->
     <div class="top-toggle">
-        <button class="active" onclick="showSection('yt', this)">YouTube</button>
-        <button onclick="showSection('sp', this)">Spotify</button>
+        <button class="active" onclick="showSection('sp', this)">Spotify</button>
         <button onclick="showSection('sa', this)">JioSaavn</button>
     </div>
 
-    <section id="yt" class="section active">
-        <h1>DS YouTube Downloader</h1>
-        <form method="POST" action="/youtube">
-            <label>YouTube URL</label>
-            <input name="url" required>
-
-            <label>Mode</label>
-            <select name="mode" onchange="toggleQuality(this)">
-                <option value="video">Video</option>
-                <option value="audio">Audio</option>
-            </select>
-
-            <div class="quality">
-                <label>Quality</label>
-                <select name="quality">
-                    <option value="2160">2160p</option>
-                    <option value="1440">1440p</option>
-                    <option value="1080" selected>1080p</option>
-                    <option value="720">720p</option>
-                    <option value="480">480p</option>
-                </select>
-            </div>
-
-            <button type="submit">Download</button>
-        </form>
-    </section>
-
-    <section id="sp" class="section">
+    <section id="sp" class="section active">
         <h1>DS Spotify Downloader</h1>
         <form method="GET" action="/spotify">
             <label>Spotify Track URL</label>
@@ -75,13 +47,7 @@ function showSection(id, btn) {
     document.getElementById(id).classList.add("active");
     btn.classList.add("active");
 }
-
-function toggleQuality(sel) {
-    sel.form.querySelector(".quality").style.display =
-        sel.value === "audio" ? "none" : "block";
-}
-</script>
-<script>
+    
 async function searchSaavn() {
     const q = document.getElementById("saavnQuery").value.trim();
     if (!q) return;
@@ -106,3 +72,4 @@ async function searchSaavn() {
 
 </body>
 </html>
+

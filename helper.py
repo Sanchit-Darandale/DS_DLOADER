@@ -9,15 +9,10 @@ from threading import Lock
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-YT_DOWNLOAD_DIR = os.path.join(BASE_DIR, "downloads/YT")
 SP_DOWNLOAD_DIR = os.path.join(BASE_DIR, "downloads/SPOTIFY")
 SVN_DOWNLOAD_DIR = os.path.join(BASE_DIR, "downloads/SAAVN")
 
-COOKIE_FILE = os.path.join(BASE_DIR, "cookies.txt")
-
 PYTHON = sys.executable
-
-YOUTUBE_REGEX = re.compile(r"^(https?://)?(www\.)?(youtube\.com|youtu\.be)/")
 
 SAAVN_API = "https://jiosavan-api2.vercel.app/api/search/songs"
 
@@ -86,20 +81,5 @@ def saavn_search(query):
 
     return results
 
-def is_valid_youtube(url: str) -> bool:
-    return bool(YOUTUBE_REGEX.match(url))
-
-def run_yt_dlp(cmd):
-    result = subprocess.run(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True
-    )
-    if result.returncode != 0:
-        raise RuntimeError(result.stderr)
-    return result.stdout
-
 def safe_name(s):
     return re.sub(r'[\\/:*?"<>|]+', "", s).strip()
-

@@ -1,0 +1,183 @@
+:root {
+    --bg: #0f0f0f;
+    --card: #1a1a1a;
+    --text: #ffffff;
+    --muted: #aaaaaa;
+    --accent: #e62117;
+    --radius: 14px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    display: flex;
+    /* overflow: hidden; */
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.container {
+    width: 100%;
+    max-width: 420px;
+    background: var(--card);
+    padding: 24px;
+    border-radius: var(--radius);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+h1 {
+    margin: 0 0 20px;
+    text-align: center;
+    font-size: 1.4rem;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+label {
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+input,
+select {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    background: #262626;
+    color: var(--text);
+    font-size: 0.95rem;
+}
+
+input::placeholder {
+    color: #777;
+}
+
+button {
+    margin-top: 10px;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 1.2rem;
+    }
+}
+
+.footer {
+    position: fixed;
+    bottom: 12px;
+    width: 100%;
+    text-align: center;
+    font-size: 1rem;
+    color: #aaa;
+    pointer-events: none;
+}
+
+.footer .heart {
+    color: #e62117;
+}
+
+.footer .name {
+    font-family: "Segoe Script", "Lucida Handwriting", "Brush Script MT", cursive;
+    font-size: 2rem;
+    color: #fff;
+}
+
+.layout {
+    display: flex;
+    gap: 16px;
+}
+
+.sidebar {
+    width: 110px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sidebar button {
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: #262626;
+    color: #fff;
+    cursor: pointer;
+}
+
+.sidebar button.active {
+    background: var(--accent);
+}
+
+.content {
+    flex: 1;
+}
+
+.section {
+    display: none;
+}
+
+.section.active {
+    display: block;
+}
+
+hr {
+    display: none;
+}
+
+.top-toggle {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.top-toggle button {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: #262626;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.top-toggle button.active {
+    background: var(--accent);
+}
+
+.section {
+    display: none;
+}
+
+.section.active {
+    display: block;
+}

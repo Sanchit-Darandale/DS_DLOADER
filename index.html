@@ -19,40 +19,9 @@
 <div class="container">
 
     <div class="top-toggle">
-        <button class="active" onclick="showSection('yt', this)">YouTube</button>
-        <button onclick="showSection('sp', this)">Spotify</button>
+        <button class="active" onclick="showSection('sp', this)">Spotify</button>
         <button onclick="showSection('sa', this)">JioSaavn</button>
     </div>
-
-    <section id="yt" class="section active">
-        <h1>DS YouTube Downloader</h1>
-        <form method="POST" action="/youtube" data-download-form>
-            <label>YouTube URL</label>
-            <div class="clearable-input">
-                <input name="url" required>
-                <button type="button" class="clear-input" onclick="clearInput(this)" aria-label="Clear YouTube URL">X</button>
-            </div>
-
-            <label>Mode</label>
-            <select name="mode" onchange="toggleQuality(this)">
-                <option value="video">Video</option>
-                <option value="audio">Audio</option>
-            </select>
-
-            <div class="quality">
-                <label>Quality</label>
-                <select name="quality">
-                    <option value="2160">2160p</option>
-                    <option value="1440">1440p</option>
-                    <option value="1080" selected>1080p</option>
-                    <option value="720">720p</option>
-                    <option value="480">480p</option>
-                </select>
-            </div>
-
-            <button type="submit" data-loading-text="Processing">Download</button>
-        </form>
-    </section>
 
     <section id="sp" class="section">
         <h1>DS Spotify Downloader</h1>

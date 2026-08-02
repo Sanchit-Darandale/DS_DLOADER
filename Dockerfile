@@ -17,9 +17,7 @@ COPY helper.py .
 COPY index.html .
 COPY static/ ./static/
 
-COPY cookies.txt ./cookies.txt
-
-RUN mkdir -p downloads/YT downloads/SPOTIFY downloads/SAAVN
+RUN mkdir -p downloads/SPOTIFY downloads/SAAVN
 
 EXPOSE 10000
 

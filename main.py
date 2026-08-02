@@ -100,62 +100,6 @@ def spotify_download():
     except Exception as e:
         return spotify_retry_response(e)
 
-
-@app.route("/youtube", methods=["POST"])
-def youtube_download():
-    url = request.form.get("url", "").strip()
-    mode = request.form.get("mode")
-    quality = request.form.get("quality", "1080")
-
-    if not is_valid_youtube(url):
-        abort(400, "Invalid YouTube URL")
-
-    if not os.path.exists(COOKIE_FILE):
-        abort(500, "cookies.txt missing - export cookies using: yt-dlp --cookies-from-browser chrome --save-cookies cookies.txt")
-
-    before = set(os.listdir(YT_DOWNLOAD_DIR))
-    output_template = os.path.join(YT_DOWNLOAD_DIR, "%(title).200s.%(ext)s")
-
-    if mode == "audio":
-        cmd = [
-            PYTHON, "-m", "yt_dlp",
-            "--js-runtimes", "node",
-            "--remote-components", "ejs:github",
-            "--extractor-args", "youtube:player_client=android",
-            "--cookies", COOKIE_FILE,
-            "-x", "--audio-format", "mp3",
-            "--audio-quality", "0",
-            "--no-playlist",
-            "-o", output_template,
-            url
-        ]
-    else:
-        fmt = f"bv*[height<={quality}]+ba/best"
-        cmd = [
-            PYTHON, "-m", "yt_dlp",
-            "--js-runtimes", "node",
-            "--remote-components", "ejs:github",
-            "--extractor-args", "youtube:player_client=android",
-            "--cookies", COOKIE_FILE,
-            "-f", fmt,
-            "--merge-output-format", "mp4",
-            "--no-playlist",
-            "-o", output_template,
-            url
-        ]
-
-    run_yt_dlp(cmd)
-
-    after = set(os.listdir(YT_DOWNLOAD_DIR))
-    new_files = list(after - before)
-    if not new_files:
-        abort(500, "Output not found")
-
-    return send_file(
-        os.path.join(YT_DOWNLOAD_DIR, new_files[0]),
-        as_attachment=True
-    )
-
 @app.route("/saavn/search")
 def saavn_search_api():
     q = request.args.get("q", "").strip()

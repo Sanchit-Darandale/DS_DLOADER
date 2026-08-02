@@ -2,20 +2,42 @@ import os
 import re
 import sys
 import time
+import base64
 import requests
 import subprocess
 import cloudscraper
 from threading import Lock
+from Crypto.Cipher import DES
+from Crypto.Util.Padding import unpad
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
+YT_DOWNLOAD_DIR = os.path.join(BASE_DIR, "downloads/YT")
 SP_DOWNLOAD_DIR = os.path.join(BASE_DIR, "downloads/SPOTIFY")
 SVN_DOWNLOAD_DIR = os.path.join(BASE_DIR, "downloads/SAAVN")
 
+DESKTOP_KEY = b"38346591"
+COOKIE_FILE = os.path.join(BASE_DIR, "cookies.txt")
 PYTHON = sys.executable
 
+YOUTUBE_REGEX = re.compile(r"^(https?://)?(www\.)?(youtube\.com|youtu\.be)/")
 SAAVN_API = "https://jiosavan-api2.vercel.app/api/search/songs"
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Linux; Android 13; SM-G981B) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/148.0.0.0 Mobile Safari/537.36"
+    ),
+    "Referer": "https://www.jiosaavn.com/",
+    "Accept": "*/*",
+    "Range": "bytes=0-",
+}
 
+def safe_name(s):
+    return re.sub(r'[\\/:*?"<>|]+', "", s).strip()
+
+# ============================================ #
+#                SPOTIFY HELPER                #
+# ============================================ #
 class SpotMateAPI:
     def __init__(self):
         self.scraper = cloudscraper.create_scraper(
@@ -33,9 +55,8 @@ class SpotMateAPI:
         cookies, csrf = self.init_session()
         if not csrf:
             return None
-
+        
         headers = {"x-csrf-token": csrf}
-
         self.scraper.post(
             f"{self.base_url}/getTrackData",
             json={"spotify_url": spotify_url},
@@ -54,6 +75,62 @@ class SpotMateAPI:
 
         data = r.json()
         return data.get("download_url") or data.get("url")
+
+# ============================================= #
+#                YOUTUBE HELPER                 #    
+# ============================================= #
+def is_valid_youtube(url: str) -> bool:
+    return bool(YOUTUBE_REGEX.match(url))
+
+def run_yt_dlp(cmd):
+    result = subprocess.run(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr)
+    return result.stdout
+
+
+# ============================================== #
+#               JIO SAAVN HELPER                 #
+# ============================================== #
+def extract_song_id(url):
+    clean_url = url.split("?", 1)[0].split("#", 1)[0]
+    return clean_url.rstrip("/").split("/")[-1]
+
+def decrypt_url(encrypted_url):
+    encrypted_url += "=" * (-len(encrypted_url) % 4)
+    encrypted_bytes = base64.b64decode(encrypted_url)
+
+    cipher = DES.new(
+        DESKTOP_KEY,
+        DES.MODE_ECB
+    )
+
+    decrypted = unpad(
+        cipher.decrypt(encrypted_bytes),
+        DES.block_size
+    )
+    return decrypted.decode("utf-8")
+
+def get_song_data(song_id):
+    api = (
+        "https://www.jiosaavn.com/api.php"
+        f"?__call=webapi.get"
+        f"&token={song_id}"
+        f"&type=song"
+        f"&includeMetaTags=0"
+        f"&ctx=web6dot0"
+        f"&api_version=4"
+        f"&_format=json"
+    )
+
+    response = requests.get(api, headers=HEADERS, timeout=30)
+    response.raise_for_status()
+    return response.json()
 
 def saavn_search(query):
     r = requests.get(
@@ -81,5 +158,3 @@ def saavn_search(query):
 
     return results
 
-def safe_name(s):
-    return re.sub(r'[\\/:*?"<>|]+', "", s).strip()

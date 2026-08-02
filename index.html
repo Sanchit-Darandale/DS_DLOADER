@@ -8,31 +8,84 @@
 </head>
 <body>
 
+<div class="bg-3d" aria-hidden="true">
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+</div>
+
 <div class="container">
-    <!-- TOP TOGGLE -->
+
     <div class="top-toggle">
-        <button class="active" onclick="showSection('sp', this)">Spotify</button>
+        <button class="active" onclick="showSection('yt', this)">YouTube</button>
+        <button onclick="showSection('sp', this)">Spotify</button>
         <button onclick="showSection('sa', this)">JioSaavn</button>
     </div>
-    
-    <section id="sp" class="section active">
+
+    <section id="yt" class="section active">
+        <h1>DS YouTube Downloader</h1>
+        <form method="POST" action="/youtube" data-download-form>
+            <label>YouTube URL</label>
+            <div class="clearable-input">
+                <input name="url" required>
+                <button type="button" class="clear-input" onclick="clearInput(this)" aria-label="Clear YouTube URL">X</button>
+            </div>
+
+            <label>Mode</label>
+            <select name="mode" onchange="toggleQuality(this)">
+                <option value="video">Video</option>
+                <option value="audio">Audio</option>
+            </select>
+
+            <div class="quality">
+                <label>Quality</label>
+                <select name="quality">
+                    <option value="2160">2160p</option>
+                    <option value="1440">1440p</option>
+                    <option value="1080" selected>1080p</option>
+                    <option value="720">720p</option>
+                    <option value="480">480p</option>
+                </select>
+            </div>
+
+            <button type="submit" data-loading-text="Processing">Download</button>
+        </form>
+    </section>
+
+    <section id="sp" class="section">
         <h1>DS Spotify Downloader</h1>
-        <form method="GET" action="/spotify">
+        <form method="GET" action="/spotify" data-download-form data-fetch-download>
             <label>Spotify Track URL</label>
-            <input name="url" required>
-            <button type="submit">Download</button>
+            <div class="clearable-input">
+                <input name="url" required>
+                <button type="button" class="clear-input" onclick="clearInput(this)" aria-label="Clear Spotify Track URL">X</button>
+            </div>
+            <button type="submit" data-loading-text="Processing">Download</button>
         </form>
     </section>
 
     <section id="sa" class="section">
         <h1>DS JioSaavn Downloader</h1>
-        <input id="saavnQuery" placeholder="Song name">
-        <button onclick="searchSaavn()">Search</button>
+        <div class="inline-action">
+            <div class="clearable-input">
+                <input id="saavnQuery" placeholder="Song Name">
+                <button type="button" class="clear-input" onclick="clearSaavnSearch()" aria-label="Clear song search">X</button>
+            </div>
+            <button type="button" onclick="searchSaavn()">Search</button>
+        </div>
+        <form class="saavn-url-form" method="POST" action="/saavn/url-download" data-download-form>
+            <div class="clearable-input">
+                <input name="url" placeholder="Song URL" required>
+                <button type="button" class="clear-input" onclick="clearInput(this)" aria-label="Clear Song URL">X</button>
+            </div>
+            <button type="submit" data-loading-text="Processing">Download</button>
+        </form>
         <div id="saavnResults"></div>
     </section>
+
 </div>
-
-
 
 <footer class="footer">
     Made With <span class="heart">❤️</span> By <span class="name">Sanchit</span>
@@ -42,11 +95,116 @@
 function showSection(id, btn) {
     document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
     document.querySelectorAll(".top-toggle button").forEach(b => b.classList.remove("active"));
-
     document.getElementById(id).classList.add("active");
     btn.classList.add("active");
 }
-    
+
+function toggleQuality(sel) {
+    sel.form.querySelector(".quality").style.display = sel.value === "audio" ? "none" : "block";
+}
+
+function clearSaavnSearch() {
+    const input = document.getElementById("saavnQuery");
+    const results = document.getElementById("saavnResults");
+    input.value = "";
+    results.innerHTML = "";
+    input.focus();
+}
+
+function clearInput(button) {
+    const input = button.parentElement.querySelector("input");
+    input.value = "";
+    input.focus();
+}
+
+function setButtonLoading(button, isLoading) {
+    if (!button) return;
+
+    if (isLoading) {
+        button.dataset.defaultText = button.textContent;
+        button.classList.add("is-loading");
+        button.disabled = true;
+        button.innerHTML = `<span class="spinner"></span>${button.dataset.loadingText || "Processing"}`;
+        return;
+    }
+
+    button.classList.remove("is-loading");
+    button.disabled = false;
+    button.textContent = button.dataset.defaultText || "Download";
+}
+
+function resetButtonAfterDownload(button) {
+    button.dataset.resetTimer = window.setTimeout(() => {
+        setButtonLoading(button, false);
+    }, 8000);
+}
+
+function getDownloadFileName(response) {
+    const disposition = response.headers.get("content-disposition") || "";
+    const utfName = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+    const plainName = disposition.match(/filename="?([^";]+)"?/i);
+
+    if (utfName) return decodeURIComponent(utfName[1]);
+    if (plainName) return plainName[1];
+    return "download.mp3";
+}
+
+async function downloadWithStatus(form, button) {
+    const params = new URLSearchParams(new FormData(form));
+    const url = `${form.action}?${params.toString()}`;
+    const response = await fetch(url);
+
+    if (response.status === 200) {
+        window.clearTimeout(Number(button.dataset.resetTimer || 0));
+        setButtonLoading(button, false);
+    }
+
+    if (!response.ok) {
+        window.location.href = url;
+        return;
+    }
+
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = getDownloadFileName(response);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(objectUrl);
+}
+
+document.querySelectorAll("[data-download-form]").forEach(form => {
+    form.addEventListener("submit", event => {
+        const button = form.querySelector("button[type='submit']");
+        setButtonLoading(button, true);
+
+        if (form.dataset.fetchDownload !== undefined) {
+            event.preventDefault();
+            downloadWithStatus(form, button).catch(() => {
+                setButtonLoading(button, false);
+            });
+            return;
+        }
+        resetButtonAfterDownload(button);
+    });
+});
+
+window.addEventListener("pageshow", () => {
+    document.querySelectorAll("button.is-loading").forEach(button => {
+        setButtonLoading(button, false);
+    });
+});
+
+window.addEventListener("focus", () => {
+    document.querySelectorAll("button.is-loading").forEach(button => {
+        setButtonLoading(button, false);
+    });
+});
+</script>
+
+<script>
 async function searchSaavn() {
     const q = document.getElementById("saavnQuery").value.trim();
     if (!q) return;
@@ -61,6 +219,8 @@ async function searchSaavn() {
         const btn = document.createElement("button");
         btn.textContent = `${s.title} - ${s.artist}`;
         btn.onclick = () => {
+            setButtonLoading(btn, true);
+            resetButtonAfterDownload(btn);
             window.location.href =
                 `/saavn/download?url=${encodeURIComponent(s.url)}&title=${encodeURIComponent(s.title)}&artist=${encodeURIComponent(s.artist)}`;
         };
@@ -68,9 +228,5 @@ async function searchSaavn() {
     });
 }
 </script>
-
 </body>
 </html>
-
-
-

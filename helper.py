@@ -11,8 +11,10 @@ from Crypto.Cipher import DES
 from Crypto.Util.Padding import unpad
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SP_DOWNLOAD_DIR = os.path.join(BASE_DIR, "downloads/SPOTIFY")
-SVN_DOWNLOAD_DIR = os.path.join(BASE_DIR, "downloads/SAAVN")
+SP_DOWNLOAD_DIR = os.path.join(BASE_DIR, "downloads", "SPOTIFY")
+SVN_DOWNLOAD_DIR = os.path.join(BASE_DIR, "downloads", "SAAVN")
+os.makedirs(SP_DOWNLOAD_DIR, exist_ok=True)
+os.makedirs(SVN_DOWNLOAD_DIR, exist_ok=True)
 
 DESKTOP_KEY = b"38346591"
 PYTHON = sys.executable
